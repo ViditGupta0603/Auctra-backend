@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  password  String
+  role      String    @default("buyer")
+  createdAt DateTime  @default(now())
+
+  bids      Bid[]
+  auctions  Auction[]
+}
+
+model Auction {
+  id            String   @id @default(cuid())
+
+  title         String
+  description   String
+
+  category      String?
+
+  startingPrice Float
+  currentBid    Float
+
+  endTime       DateTime
+
+  imageUrl      String?
+
+  status        String   @default("PENDING")
+
+  sellerId      String
+
+  createdAt     DateTime @default(now())
+
+  updatedAt     DateTime @updatedAt
+
+  seller User @relation(fields: [sellerId], references: [id])
+
+  bids Bid[]
+}
+
+model Bid {
+  id         String    @id @default(cuid())
+
+  amount     Float
+
+  auctionId  String
+  userId     String
+
+  createdAt  DateTime  @default(now())
+
+  auction    Auction   @relation(fields: [auctionId], references: [id])
+  user       User      @relation(fields: [userId], references: [id])
+}
