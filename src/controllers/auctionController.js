@@ -133,21 +133,19 @@ exports.getAuctionById =
       const auction =
         await prisma.auction.findUnique(
           {
-            where: {
-              id,
-            },
+            where: { id },
 
             include: {
               seller: true,
 
               bids: {
-                include: {
-                  user: true,
+                orderBy: {
+                  amount:
+                    "desc",
                 },
 
-                orderBy: {
-                  createdAt:
-                    "desc",
+                include: {
+                  user: true,
                 },
               },
             },
@@ -163,11 +161,14 @@ exports.getAuctionById =
           });
       }
 
+      res.set(
+        "Cache-Control",
+        "no-store"
+      );
+
       res.json(auction);
     } catch (error) {
-      console.error(
-        error
-      );
+      console.error(error);
 
       res.status(500).json({
         error:
