@@ -8,12 +8,11 @@ const sendVerificationEmail =
   ) => {
     try {
       console.log(
-        "STARTING EMAIL SERVICE..."
+        "STARTING EMAIL..."
       );
 
       /**
-       * USE SMTP
-       * PORT 587
+       * SMTP CONFIG
        */
       const transporter =
         nodemailer.createTransport(
@@ -32,32 +31,24 @@ const sendVerificationEmail =
               pass:
                 process.env.EMAIL_PASS,
             },
+
+            tls: {
+              rejectUnauthorized:
+                false,
+            },
           }
         );
-
-      console.log(
-        "SMTP CREATED"
-      );
-
-      /**
-       * VERIFY SMTP
-       */
-      await transporter.verify();
-
-      console.log(
-        "SMTP VERIFIED"
-      );
 
       const verificationUrl =
         `${process.env.BACKEND_URL}/api/auth/verify-email/${token}`;
 
       console.log(
-        "VERIFICATION URL:",
-        verificationUrl
+        "SENDING TO:",
+        email
       );
 
       /**
-       * SEND EMAIL
+       * SEND MAIL
        */
       const info =
         await transporter.sendMail(
@@ -95,8 +86,6 @@ const sendVerificationEmail =
               <p style="
                 color:#cbd5e1;
                 line-height:1.7;
-                max-width:500px;
-                margin:auto;
               ">
                 Verify your email to activate your account.
               </p>
@@ -123,18 +112,17 @@ const sendVerificationEmail =
         );
 
       console.log(
-        "EMAIL SENT SUCCESSFULLY"
+        "EMAIL SENT"
       );
 
       console.log(
-        "MESSAGE ID:",
         info.messageId
       );
 
       return true;
     } catch (error) {
       console.error(
-        "EMAIL SEND ERROR:"
+        "EMAIL ERROR:"
       );
 
       console.error(error);
