@@ -7,13 +7,6 @@ const bcrypt =
 const jwt =
   require("jsonwebtoken");
 
-const {
-  v4: uuidv4,
-} = require("uuid");
-
-const sendVerificationEmail =
-  require("../utils/sendVerificationEmail");
-
 /**
  * REGISTER USER
  */
@@ -28,9 +21,8 @@ exports.registerUser =
       } = req.body;
 
       /**
-       * VALIDATIONS
+       * VALIDATION
        */
-
       if (
         !name ||
         !email ||
@@ -45,6 +37,9 @@ exports.registerUser =
           });
       }
 
+      /**
+       * ONLY GMAIL
+       */
       if (
         !email.endsWith(
           "@gmail.com"
@@ -58,6 +53,9 @@ exports.registerUser =
           });
       }
 
+      /**
+       * PASSWORD LENGTH
+       */
       if (
         password.length < 8
       ) {
@@ -69,6 +67,9 @@ exports.registerUser =
           });
       }
 
+      /**
+       * AGE CHECK
+       */
       if (
         Number(age) < 18
       ) {
@@ -81,7 +82,7 @@ exports.registerUser =
       }
 
       /**
-       * CHECK USER
+       * EXISTING USER
        */
       const existingUser =
         await prisma.user.findUnique(
@@ -111,12 +112,6 @@ exports.registerUser =
         );
 
       /**
-       * TOKEN
-       */
-      const verificationToken =
-        uuidv4();
-
-      /**
        * CREATE USER
        */
       const user =
@@ -134,63 +129,17 @@ exports.registerUser =
                 Number(age),
 
               role: "user",
-
-              isEmailVerified:
-                false,
-
-              verificationToken,
             },
           }
         );
-
-      /**
-       * SEND EMAIL
-       */
-      try {
-        await sendVerificationEmail(
-          email,
-          verificationToken
-        );
-      } catch (
-        emailError
-      ) {
-        console.error(
-          "EMAIL ERROR:",
-          emailError
-        );
-
-        /**
-         * DELETE USER
-         * IF EMAIL FAILS
-         */
-        if (user?.id) {
-          try {
-            await prisma.user.delete({
-              where: {
-                id: user.id,
-              },
-            });
-          } catch (deleteError) {
-            console.error(
-              "DELETE ERROR:",
-              deleteError
-            );
-          }
-        }
-
-        return res
-          .status(500)
-          .json({
-            message:
-              "Failed to send verification email",
-          });
-      }
 
       return res
         .status(201)
         .json({
           message:
-            "Verification email sent successfully",
+            "Registration successful",
+
+          user,
         });
     } catch (error) {
       console.error(
@@ -240,21 +189,7 @@ exports.loginUser =
       }
 
       /**
-       * EMAIL VERIFIED?
-       */
-      if (
-        !user.isEmailVerified
-      ) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Please verify your email first",
-          });
-      }
-
-      /**
-       * PASSWORD CHECK
+       * CHECK PASSWORD
        */
       const isMatch =
         await bcrypt.compare(
@@ -272,7 +207,7 @@ exports.loginUser =
       }
 
       /**
-       * GENERATE JWT
+       * JWT TOKEN
        */
       const token =
         jwt.sign(
@@ -317,74 +252,5 @@ exports.loginUser =
           message:
             "Login failed",
         });
-    }
-  };
-
-/**
- * VERIFY EMAIL
- */
-exports.verifyEmail =
-  async (req, res) => {
-    try {
-      const { token } =
-        req.params;
-
-      /**
-       * FIND USER
-       */
-      const user =
-        await prisma.user.findFirst(
-          {
-            where: {
-              verificationToken:
-                token,
-            },
-          }
-        );
-
-      if (!user) {
-        return res
-          .status(400)
-          .send(
-            "Invalid verification token"
-          );
-      }
-
-      /**
-       * VERIFY
-       */
-      await prisma.user.update(
-        {
-          where: {
-            id: user.id,
-          },
-
-          data: {
-            isEmailVerified:
-              true,
-
-            verificationToken:
-              null,
-          },
-        }
-      );
-
-      /**
-       * REDIRECT
-       */
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/login?verified=true`
-      );
-    } catch (error) {
-      console.error(
-        "VERIFY ERROR:",
-        error
-      );
-
-      return res
-        .status(500)
-        .send(
-          "Verification failed"
-        );
     }
   };
