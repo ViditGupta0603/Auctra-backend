@@ -1,9 +1,13 @@
-const express = require("express");
-const router = express.Router();
+const express =
+  require("express");
+
+const router =
+  express.Router();
 
 const {
   registerUser,
   loginUser,
+  verifyEmail,
 } = require("../controllers/authController");
 
 /**
@@ -25,11 +29,16 @@ const {
  *                 type: string
  *               password:
  *                 type: string
+ *               age:
+ *                 type: number
  *     responses:
  *       201:
- *         description: User created
+ *         description: Verification email sent
  */
-router.post("/register", registerUser);
+router.post(
+  "/register",
+  registerUser
+);
 
 /**
  * @swagger
@@ -52,6 +61,31 @@ router.post("/register", registerUser);
  *       200:
  *         description: Login success
  */
-router.post("/login", loginUser);
+router.post(
+  "/login",
+  loginUser
+);
 
-module.exports = router;
+/**
+ * @swagger
+ * /api/auth/verify-email/{token}:
+ *   get:
+ *     summary: Verify email
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Email verified
+ */
+router.get(
+  "/verify-email/:token",
+  verifyEmail
+);
+
+module.exports =
+  router;

@@ -553,7 +553,10 @@ exports.getPendingAuctions =
     }
   };
   
-  exports.updateAuction =
+  const createNotification =
+  require("../utils/createNotification");
+
+exports.updateAuction =
   async (req, res) => {
     try {
       const { id } =
@@ -568,6 +571,9 @@ exports.getPendingAuctions =
         imageUrl,
       } = req.body;
 
+      /**
+       * FIND EXISTING AUCTION
+       */
       const existingAuction =
         await prisma.auction.findUnique(
           {
@@ -603,6 +609,40 @@ exports.getPendingAuctions =
           });
       }
 
+      /**
+       * GET ALL UNIQUE BIDDERS
+       */
+      const bidders =
+        await prisma.bid.findMany(
+          {
+            where: {
+              auctionId: id,
+            },
+
+            select: {
+              userId: true,
+            },
+
+            distinct: [
+              "userId",
+            ],
+          }
+        );
+
+      /**
+       * DELETE ALL OLD BIDS
+       */
+      await prisma.bid.deleteMany(
+        {
+          where: {
+            auctionId: id,
+          },
+        }
+      );
+
+      /**
+       * UPDATE AUCTION
+       */
       const updatedAuction =
         await prisma.auction.update(
           {
@@ -622,6 +662,14 @@ exports.getPendingAuctions =
                   startingPrice
                 ),
 
+              /**
+               * RESET CURRENT BID
+               */
+              currentBid:
+                Number(
+                  startingPrice
+                ),
+
               endTime:
                 new Date(
                   endTime
@@ -630,8 +678,7 @@ exports.getPendingAuctions =
               imageUrl,
 
               /**
-               * IMPORTANT
-               * REQUIRES RE-APPROVAL
+               * REQUIRE REAPPROVAL
                */
               status:
                 "PENDING",
@@ -639,9 +686,26 @@ exports.getPendingAuctions =
           }
         );
 
+      /**
+       * NOTIFY ALL BIDDERS
+       */
+      for (const bidder of bidders) {
+        await createNotification(
+          {
+            userId:
+              bidder.userId,
+
+            title:
+              "Auction Updated",
+
+            message: `The auction "${title}" was updated. All previous bids were removed and the auction was reset for fairness.`,
+          }
+        );
+      }
+
       res.json({
         message:
-          "Auction updated successfully",
+          "Auction updated successfully and sent for re-approval",
 
         auction:
           updatedAuction,

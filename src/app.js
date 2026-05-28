@@ -12,6 +12,8 @@ const analyticsRoutes =
 const app = express();
 const uploadRoutes =
   require("./routes/uploadRoutes");
+const notificationRoutes =
+  require("./routes/notificationRoutes");
 
 app.use(cors());
 app.use(express.json());
@@ -22,6 +24,10 @@ app.use(
 app.use(
   "/api/upload",
   uploadRoutes
+);
+app.use(
+  "/api/notifications",
+  notificationRoutes
 );
 
 app.get("/", (req, res) => {

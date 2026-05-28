@@ -11,12 +11,16 @@ model User {
   id        String    @id @default(cuid())
   name      String
   email     String    @unique
+  age       Int
+  isEmailVerified   Boolean @default(false)
+  verificationToken String?
   password  String
   role      String    @default("buyer")
   createdAt DateTime  @default(now())
 
   bids      Bid[]
   auctions  Auction[]
+  notifications Notification[]
 }
 
 model Auction {
@@ -59,4 +63,19 @@ model Bid {
 
   auction    Auction   @relation(fields: [auctionId], references: [id])
   user       User      @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+
+  title     String
+  message   String
+
+  read      Boolean  @default(false)
+
+  userId    String
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }
