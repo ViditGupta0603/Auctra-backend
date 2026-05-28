@@ -31,7 +31,7 @@ const sendVerificationEmail =
      * NOT FRONTEND
      */
     const verificationUrl =
-      `http://localhost:5000/api/auth/verify-email/${token}`;
+      `https://github.com/ViditGupta0603/auctra-backend/api/auth/verify-email/${token}`;
 
     /**
      * SEND EMAIL

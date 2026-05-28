@@ -323,7 +323,7 @@ exports.verifyEmail =
        * REDIRECT TO LOGIN
        */
       return res.redirect(
-        "http://localhost:3000/login?verified=true"
+        "https://github.com/ViditGupta0603/auctra-frontend/login?verified=true"
       );
     } catch (error) {
       console.error(error);
