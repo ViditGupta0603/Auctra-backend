@@ -15,7 +15,7 @@ const sendVerificationEmail =
   require("../utils/sendVerificationEmail");
 
 /**
- * REGISTER
+ * REGISTER USER
  */
 exports.registerUser =
   async (req, res) => {
@@ -30,6 +30,20 @@ exports.registerUser =
       /**
        * VALIDATIONS
        */
+
+      if (
+        !name ||
+        !email ||
+        !password ||
+        !age
+      ) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "All fields are required",
+          });
+      }
 
       if (
         !email.endsWith(
@@ -62,10 +76,13 @@ exports.registerUser =
           .status(400)
           .json({
             message:
-              "Only users above 18 are allowed",
+              "Only 18+ users allowed",
           });
       }
 
+      /**
+       * CHECK USER
+       */
       const existingUser =
         await prisma.user.findUnique(
           {
@@ -116,10 +133,12 @@ exports.registerUser =
               age:
                 Number(age),
 
-              verificationToken,
+              role: "user",
 
               isEmailVerified:
                 false,
+
+              verificationToken,
             },
           }
         );
@@ -135,8 +154,14 @@ exports.registerUser =
       } catch (
         emailError
       ) {
+        console.error(
+          "EMAIL ERROR:",
+          emailError
+        );
+
         /**
-         * DELETE USER IF EMAIL FAILS
+         * DELETE USER
+         * IF EMAIL FAILS
          */
         await prisma.user.delete(
           {
@@ -154,22 +179,29 @@ exports.registerUser =
           });
       }
 
-      res.status(201).json({
-        message:
-          "Verification email sent successfully. Please check your Gmail.",
-      });
+      return res
+        .status(201)
+        .json({
+          message:
+            "Verification email sent successfully",
+        });
     } catch (error) {
-      console.error(error);
+      console.error(
+        "REGISTER ERROR:",
+        error
+      );
 
-      res.status(500).json({
-        error:
-          error.message,
-      });
+      return res
+        .status(500)
+        .json({
+          message:
+            "Registration failed",
+        });
     }
   };
 
 /**
- * LOGIN
+ * LOGIN USER
  */
 exports.loginUser =
   async (req, res) => {
@@ -179,6 +211,9 @@ exports.loginUser =
         password,
       } = req.body;
 
+      /**
+       * FIND USER
+       */
       const user =
         await prisma.user.findUnique(
           {
@@ -198,7 +233,7 @@ exports.loginUser =
       }
 
       /**
-       * VERIFIED?
+       * EMAIL VERIFIED?
        */
       if (
         !user.isEmailVerified
@@ -230,7 +265,7 @@ exports.loginUser =
       }
 
       /**
-       * JWT
+       * GENERATE JWT
        */
       const token =
         jwt.sign(
@@ -247,7 +282,7 @@ exports.loginUser =
           }
         );
 
-      res.json({
+      return res.json({
         token,
 
         user: {
@@ -261,18 +296,20 @@ exports.loginUser =
 
           role:
             user.role,
-
-          age:
-            user.age,
         },
       });
     } catch (error) {
-      console.error(error);
+      console.error(
+        "LOGIN ERROR:",
+        error
+      );
 
-      res.status(500).json({
-        error:
-          error.message,
-      });
+      return res
+        .status(500)
+        .json({
+          message:
+            "Login failed",
+        });
     }
   };
 
@@ -285,6 +322,9 @@ exports.verifyEmail =
       const { token } =
         req.params;
 
+      /**
+       * FIND USER
+       */
       const user =
         await prisma.user.findFirst(
           {
@@ -303,6 +343,9 @@ exports.verifyEmail =
           );
       }
 
+      /**
+       * VERIFY
+       */
       await prisma.user.update(
         {
           where: {
@@ -320,16 +363,21 @@ exports.verifyEmail =
       );
 
       /**
-       * REDIRECT TO LOGIN
+       * REDIRECT
        */
       return res.redirect(
-        "https://auctra-frontend.onrender.com/login?verified=true"
+        `${process.env.FRONTEND_URL}/login?verified=true`
       );
     } catch (error) {
-      console.error(error);
-
-      res.status(500).send(
-        error.message
+      console.error(
+        "VERIFY ERROR:",
+        error
       );
+
+      return res
+        .status(500)
+        .send(
+          "Verification failed"
+        );
     }
   };
