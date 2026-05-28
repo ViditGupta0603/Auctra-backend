@@ -11,7 +11,7 @@ module.exports = (
       req.headers.authorization;
 
     /**
-     * NO AUTH HEADER
+     * NO TOKEN
      */
     if (!authHeader) {
       return res
@@ -23,7 +23,7 @@ module.exports = (
     }
 
     /**
-     * TOKEN FORMAT
+     * FORMAT
      * Bearer TOKEN
      */
     const parts =
@@ -63,7 +63,7 @@ module.exports = (
     }
 
     /**
-     * VERIFY JWT
+     * VERIFY
      */
     const decoded =
       jwt.verify(
