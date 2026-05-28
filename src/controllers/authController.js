@@ -163,13 +163,20 @@ exports.registerUser =
          * DELETE USER
          * IF EMAIL FAILS
          */
-        await prisma.user.delete(
-          {
-            where: {
-              id: user.id,
-            },
+        if (user?.id) {
+          try {
+            await prisma.user.delete({
+              where: {
+                id: user.id,
+              },
+            });
+          } catch (deleteError) {
+            console.error(
+              "DELETE ERROR:",
+              deleteError
+            );
           }
-        );
+        }
 
         return res
           .status(500)

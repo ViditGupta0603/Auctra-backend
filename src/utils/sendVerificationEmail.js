@@ -8,50 +8,22 @@ const sendVerificationEmail =
   ) => {
     try {
       console.log(
-        "============================"
-      );
-
-      console.log(
-        "STARTING EMAIL SEND..."
-      );
-
-      console.log(
-        "EMAIL:",
-        email
-      );
-
-      console.log(
-        "TOKEN:",
-        token
-      );
-
-      console.log(
-        "EMAIL_USER:",
-        process.env.EMAIL_USER
-          ? "FOUND"
-          : "MISSING"
-      );
-
-      console.log(
-        "EMAIL_PASS:",
-        process.env.EMAIL_PASS
-          ? "FOUND"
-          : "MISSING"
-      );
-
-      console.log(
-        "BACKEND_URL:",
-        process.env.BACKEND_URL
+        "STARTING EMAIL SERVICE..."
       );
 
       /**
-       * TRANSPORTER
+       * USE SMTP
+       * PORT 587
        */
       const transporter =
         nodemailer.createTransport(
           {
-            service:
-              "gmail",
+            host:
+              "smtp.gmail.com",
+
+            port: 587,
+
+            secure: false,
 
             auth: {
               user:
@@ -64,21 +36,18 @@ const sendVerificationEmail =
         );
 
       console.log(
-        "TRANSPORTER CREATED"
+        "SMTP CREATED"
       );
 
       /**
-       * VERIFY SMTP CONNECTION
+       * VERIFY SMTP
        */
       await transporter.verify();
 
       console.log(
-        "SMTP CONNECTION VERIFIED"
+        "SMTP VERIFIED"
       );
 
-      /**
-       * VERIFICATION URL
-       */
       const verificationUrl =
         `${process.env.BACKEND_URL}/api/auth/verify-email/${token}`;
 
@@ -103,42 +72,41 @@ const sendVerificationEmail =
             html: `
             <div style="
               font-family:Arial,sans-serif;
-              padding:30px;
               background:#06111F;
+              padding:40px;
               color:white;
               text-align:center;
             ">
 
               <img
                 src="https://i.postimg.cc/xjPJL9LD/image-removebg-preview.png"
-                alt="Auctra"
                 style="
                   width:180px;
                   margin-bottom:20px;
                 "
               />
 
-              <h2 style="
+              <h1 style="
                 color:#06b6d4;
-                margin-bottom:15px;
               ">
                 Welcome to Auctra
-              </h2>
+              </h1>
 
               <p style="
                 color:#cbd5e1;
-                font-size:16px;
-                line-height:1.6;
+                line-height:1.7;
+                max-width:500px;
+                margin:auto;
               ">
-                Click below to verify your email and activate your account.
+                Verify your email to activate your account.
               </p>
 
               <a
                 href="${verificationUrl}"
                 style="
                   display:inline-block;
-                  margin-top:25px;
-                  padding:14px 24px;
+                  margin-top:30px;
+                  padding:14px 28px;
                   background:#06b6d4;
                   color:#06111F;
                   text-decoration:none;
@@ -148,15 +116,6 @@ const sendVerificationEmail =
               >
                 Verify Email
               </a>
-
-              <p style="
-                margin-top:30px;
-                color:#64748b;
-                font-size:13px;
-              ">
-                If you didn't create this account,
-                you can ignore this email.
-              </p>
 
             </div>
             `,
@@ -172,10 +131,6 @@ const sendVerificationEmail =
         info.messageId
       );
 
-      console.log(
-        "============================"
-      );
-
       return true;
     } catch (error) {
       console.error(
@@ -183,10 +138,6 @@ const sendVerificationEmail =
       );
 
       console.error(error);
-
-      console.log(
-        "============================"
-      );
 
       throw error;
     }
