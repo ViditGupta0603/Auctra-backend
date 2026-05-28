@@ -10,7 +10,7 @@ const options = {
     },
     servers: [
       {
-        url: "https://github.com/ViditGupta0603/auctra-backend",
+        url: "https://auctra-backend-gunz.onrender.com",
       },
     ],
     components: {

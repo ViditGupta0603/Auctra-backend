@@ -12,7 +12,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "https://github.com/ViditGupta0603/auctra-frontend",
+    origin: "https://auctra-frontend.onrender.com",
     methods: ["GET", "POST", "PATCH"],
   },
 });
